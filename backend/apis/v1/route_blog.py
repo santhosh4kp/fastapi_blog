@@ -3,6 +3,10 @@ from sqlalchemy.orm import Session
 from db.session import get_db
 from typing import List
 
+from db.models.user import User
+from apis.v1.route_login import get_current_user
+
+
 from schemas.blog import CreateBlog, ShowBlog, UpdateBlog
 from db.repository.blog import create_new_blog, retreive_blog,list_blogs,update_blog_by_id, delete_by_id
 
@@ -30,15 +34,15 @@ def get_all_blogs(db:Session=Depends(get_db)):
 
 
 @router.put("/{id}", response_model=ShowBlog)
-def update_blog(id:int, blog:UpdateBlog, db:Session=Depends(get_db)):
-    blog=update_blog_by_id(id=id, blog=blog, db=db, author_id=1)
-    if not blog:
-        raise HTTPException(detail=f"Blog with id {id} does not exist", status_code=status.HTTP_404_NOT_FOUND)
+def update_blog(id:int, blog:UpdateBlog, db:Session=Depends(get_db),current_user:User=Depends(get_current_user) ):
+    blog=update_blog_by_id(id=id, blog=blog, db=db, author_id=current_user.id)
+    if isinstance(blog, dict):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=blog.get("error"))
     return blog
 
 @router.delete("/{id}")
-def delete_blog_by_id(id:int, db:Session=Depends(get_db)):
-    message=delete_by_id(id=id, db=db, author_id=1)
+def delete_blog_by_id(id:int, db:Session=Depends(get_db), current_user:User=Depends(get_current_user)):
+    message=delete_by_id(id=id, db=db, author_id=current_user.id)
     if message.get("error"):
         raise  HTTPException(detail=message.get("error"), status_code=status.HTTP_400_BAD_REQUEST)
     return {"msg": message.get("msg")}

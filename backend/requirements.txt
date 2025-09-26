@@ -10,3 +10,11 @@ psycopg2-binary==2.9.10
 sqlmodel==0.0.24
 pydantic[email]
 passlib[bcrypt]
+
+
+pytest==8.4.2
+httpx==0.28.1
+
+python-jose==3.5.0
+
+python-multipart=0.0.20
